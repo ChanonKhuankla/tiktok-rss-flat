@@ -28,25 +28,81 @@ Generate usable RSS feeds from TikTok using GitHub Actions and GitHub Pages.
 * You may need to update the msToken whenever your get GH Actions erros about TikTok returning an empty response
 
 ## Running locally as an alternative
-* You need Python installed
-* Then setup with:
+
+### Quick Setup (Recommended)
+You need Python 3 installed, then run the setup script:
 
 ```bash
-pip install virtualenv
-python -m venv venv
-source venv\bin\activate
-pip install -r requirements.txt
-export MS_TOKEN="blah"
+# Make setup script executable and run it
+chmod +x setup.sh
+./setup.sh
 ```
 
-* Then run each time with:
+This will automatically:
+- Create a virtual environment
+- Install all required dependencies 
+- Install Playwright browsers
+
+### Manual Setup
+If you prefer to set up manually:
 
 ```bash
-source venv\bin\activate
+# Install virtualenv if not already available
+pip3 install virtualenv
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install playwright first (avoids compatibility issues)
+pip install playwright
+playwright install
+
+# Install remaining dependencies
+pip install asyncio feedgen TikTokApi config
+
+# Set your MS Token
+export MS_TOKEN="your_ms_token_here"
+```
+
+### Running the RSS Generator
+
+#### Quick Run (Recommended)
+```bash
+# Set your MS Token (do this each time you open a new terminal)
+export MS_TOKEN="your_ms_token_here"
+
+# Run the automated script
+./run.sh
+```
+
+#### Manual Run
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Set your MS Token 
+export MS_TOKEN="your_ms_token_here"
+
+# Run the generator
 python postprocessing.py
-git commit -a -m "latest RSS"
+
+# Commit and push changes (if in a git repository)
+git add .
+git commit -m "latest RSS $(date)"
 git push origin main
 ```
+
+### Getting Your MS Token
+1. Log into TikTok on Chrome desktop
+2. View a user profile of someone you follow
+3. Open Chrome DevTools with F12
+4. Go to the Application Tab > Storage > Cookies > https://www.tiktok.com
+5. Copy the cookie value of `msToken`
+
+### Configuration
+- Edit `subscriptions.csv` to add/remove TikTok usernames you want to follow
+- Edit `config.py` to change the GitHub Pages URL if needed
 
 ## Feed Reading
 * You then subscribe to each feed in [Feedly](https://www.feedly.com) or another feed reader using a GitHub Pages URL. Those URLs are constructed like so. E.g.:
