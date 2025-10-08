@@ -418,3 +418,4 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/python,node,macos,windows,linux,visualstudiocode,deno
 json/*
 rss/*
+credentials/*

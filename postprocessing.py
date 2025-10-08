@@ -14,6 +14,15 @@ from playwright.async_api import async_playwright, Playwright
 from pathlib import Path
 from urllib.parse import urlparse
 
+# Google Cloud Storage imports (optional)
+try:
+    from google.cloud import storage
+    from google.oauth2 import service_account
+    GCS_AVAILABLE = True
+except ImportError:
+    GCS_AVAILABLE = False
+    print("⚠️  Google Cloud Storage not available. Install with: pip install google-cloud-storage")
+
 
 # Edit config.py to change your URLs
 ghRawURL = config.ghRawURL
@@ -33,6 +42,53 @@ async def runscreenshot(playwright: Playwright, url, screenshotpath):
     # Save the screenshot
     await page.screenshot(path=screenshotpath, quality=20, type='jpeg')
     await browser.close()
+
+
+async def upload_to_gcs(json_filename: str, user: str):
+    """Upload JSON file to Google Cloud Storage if configured"""
+    if not GCS_AVAILABLE:
+        return
+
+    # Get GCS configuration
+    bucket_name = os.environ.get('GCS_BUCKET_NAME') or getattr(
+        config, 'GCS_BUCKET_NAME', None)
+    credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS') or getattr(
+        config, 'GCS_CREDENTIALS_PATH', None)
+
+    if not bucket_name:
+        print(f"⚠️  GCS bucket not configured for {user}, skipping upload")
+        return
+
+    try:
+        # Initialize client
+        if credentials_path and os.path.exists(credentials_path):
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path)
+            client = storage.Client(credentials=credentials)
+        else:
+            client = storage.Client()
+
+        bucket = client.bucket(bucket_name)
+
+        # Upload file
+        gcs_path = f"tiktok-data/json/{user}.json"
+        blob = bucket.blob(gcs_path)
+        blob.content_type = 'application/json'
+
+        # Add metadata
+        blob.metadata = {
+            'uploaded_at': datetime.utcnow().isoformat(),
+            'source': 'tiktok-rss-generator',
+            'user': user,
+            'file_size': str(os.path.getsize(json_filename))
+        }
+
+        blob.upload_from_filename(json_filename)
+
+        print(f"☁️  Uploaded {json_filename} to gs://{bucket_name}/{gcs_path}")
+
+    except Exception as e:
+        print(f"❌ Failed to upload {json_filename} to GCS: {e}")
 
 
 async def user_videos():
@@ -178,6 +234,9 @@ async def user_videos():
 
                     print(
                         f'✅ Generated RSS: rss/{user}.xml and JSON: {json_filename}')
+
+                    # Upload to Google Cloud Storage if configured
+                    await upload_to_gcs(json_filename, user)
                     # print(video)
                     # print(video.as_dict)
                 except Exception as e:
