@@ -91,11 +91,17 @@ async def user_videos():
                         "username": user,
                         "retrieved_at": datetime.now(timezone.utc).isoformat()
                     }
-
+                    index = 0
                     async for video in ttuser.videos(count=10):
+
+                        index += 1
+                        # remove pin 3 video
+                        if index <= 3:
+                            continue
                         # RSS feed entry
                         fe = fg.add_entry()
                         link = "https://tiktok.com/@" + user + "/video/" + video.id
+
                         fe.id(link)
                         ts = datetime.fromtimestamp(
                             video.as_dict['createTime'], timezone.utc)
