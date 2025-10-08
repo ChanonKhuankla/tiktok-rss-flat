@@ -174,24 +174,24 @@ async def user_videos():
                         fe.link(href=link)
 
                         # Handle thumbnail
-                        thumbnail_url = None
-                        if video.as_dict['video']['cover']:
-                            videourl = video.as_dict['video']['cover']
-                            parsed_url = urlparse(videourl)
-                            path_segments = parsed_url.path.split('/')
-                            last_segment = [
-                                seg for seg in path_segments if seg][-1]
+                        # thumbnail_url = None
+                        # if video.as_dict['video']['cover']:
+                        #     videourl = video.as_dict['video']['cover']
+                        #     parsed_url = urlparse(videourl)
+                        #     path_segments = parsed_url.path.split('/')
+                        #     last_segment = [
+                        #         seg for seg in path_segments if seg][-1]
 
-                            screenshotsubpath = "thumbnails/" + user + \
-                                "/screenshot_" + last_segment + ".jpg"
-                            screenshotpath = os.path.dirname(
-                                os.path.realpath(__file__)) + "/" + screenshotsubpath
-                            if not os.path.isfile(screenshotpath):
-                                async with async_playwright() as playwright:
-                                    await runscreenshot(playwright, videourl, screenshotpath)
-                            screenshoturl = ghRawURL + screenshotsubpath
-                            thumbnail_url = screenshoturl
-                            content = '<img src="' + screenshoturl + '" / > ' + content
+                        #     screenshotsubpath = "thumbnails/" + user + \
+                        #         "/screenshot_" + last_segment + ".jpg"
+                        #     screenshotpath = os.path.dirname(
+                        #         os.path.realpath(__file__)) + "/" + screenshotsubpath
+                        #     if not os.path.isfile(screenshotpath):
+                        #         async with async_playwright() as playwright:
+                        #             await runscreenshot(playwright, videourl, screenshotpath)
+                        #     screenshoturl = ghRawURL + screenshotsubpath
+                        #     thumbnail_url = screenshoturl
+                        #     content = '<img src="' + screenshoturl + '" / > ' + content
 
                         fe.content(content)
 
@@ -202,7 +202,7 @@ async def user_videos():
                             "title": title,
                             "description": video.as_dict['desc'] if video.as_dict['desc'] else "",
                             "created_time": ts.isoformat(),
-                            "thumbnail_url": thumbnail_url,
+                            # "thumbnail_url": thumbnail_url,
                             "cover_url": video.as_dict['video']['cover'] if video.as_dict.get('video', {}).get('cover') else None,
                             "author": user,
                             "stats": {
